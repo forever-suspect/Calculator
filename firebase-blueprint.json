@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "SavedResult": {
+      "title": "Saved Result",
+      "description": "A saved numerology calculation result with notes",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Life Path", "Compatibility"] },
+        "system": { "type": "string", "enum": ["Pythagorean", "Chaldean", "Standard"] },
+        "number": { "type": "number" },
+        "note": { "type": "string" },
+        "resultData": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    },
+    "saved_results/{resultId}": {
+      "schema": "SavedResult",
+      "description": "Collection of saved numerology results"
+    }
+  }
+}

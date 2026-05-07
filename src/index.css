@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#FAF9F6] text-[#1A1A1A] antialiased selection:bg-[#E5E1D8];
+  }
+}
+
+.serif {
+  font-family: var(--font-serif);
+}
+
+.markdown-prose {
+  @apply space-y-6 text-[#1A1A1A];
+}
+.markdown-prose h1 { @apply text-4xl font-serif italic lowercase font-light tracking-tight mb-8; }
+.markdown-prose h2 { @apply text-2xl font-serif italic mb-4 border-b border-[#E5E1D8] pb-2; }
+.markdown-prose h3 { @apply text-[11px] font-sans uppercase tracking-[0.15em] mb-4 opacity-60 italic; }
+.markdown-prose p { @apply text-sm leading-relaxed text-[#555] font-sans mb-4; }
+.markdown-prose ul { @apply list-disc list-inside space-y-3 mb-6 text-sm text-[#555] font-sans; }
+.markdown-prose strong { @apply text-[#1A1A1A] font-bold; }
