@@ -34,6 +34,8 @@ export default function App() {
   const [user, setUser] = useState(auth.currentUser);
   const [view, setView] = useState<View>('calc');
   const [birthdate, setBirthdate] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [selectedSystem, setSelectedSystem] = useState<NumerologySystem>('Pythagorean');
   const [result, setResult] = useState<any>(null);
   const [note, setNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -65,18 +67,28 @@ export default function App() {
 
   const handleCalc = () => {
     if (!birthdate) return;
-    const res = calculateLifePath(birthdate);
-    setResult(res);
+    const lifePathResult = calculateLifePath(birthdate);
+    const nameResult = fullName ? calculateNameNumber(fullName, selectedSystem) : null;
+    
+    setResult({
+      ...lifePathResult,
+      nameNumber: nameResult,
+      system: selectedSystem,
+      fullName
+    });
   };
 
   const handleSave = async () => {
     if (!user || !result) return;
     setIsSaving(true);
     try {
+      const type = result.fullName ? 'Full Profile' : 'Life Path';
+      const name = result.fullName ? `${result.fullName} (${result.total}/${result.nameNumber})` : `Life Path ${result.total}`;
+      
       await addDoc(collection(db, 'saved_results'), {
         userId: user.uid,
-        name: `Life Path ${result.total}`,
-        type: 'Life Path',
+        name,
+        type,
         number: result.total,
         note,
         createdAt: serverTimestamp(),
@@ -164,6 +176,15 @@ export default function App() {
                   <h3 className="text-[11px] font-sans uppercase tracking-[0.15em] mb-8 opacity-60 italic">Personal Data</h3>
                   <div className="space-y-10">
                     <div className="flex flex-col gap-2">
+                      <label className="text-[10px] uppercase font-sans opacity-40">Your Full Name</label>
+                      <Input
+                        placeholder="Julianna Sterling"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="text-xl border-[#E5E1D8]"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
                       <label className="text-[10px] uppercase font-sans opacity-40">Reveal Your Entrance Date</label>
                       <Input
                         type="date"
@@ -171,6 +192,25 @@ export default function App() {
                         onChange={(e) => setBirthdate(e.target.value)}
                         className="text-2xl border-[#E5E1D8]"
                       />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      <label className="text-[10px] uppercase font-sans opacity-40">Numerological System</label>
+                      <div className="flex gap-2">
+                        {(['Pythagorean', 'Chaldean'] as NumerologySystem[]).map((sys) => (
+                          <button
+                            key={sys}
+                            onClick={() => setSelectedSystem(sys)}
+                            className={cn(
+                              "flex-1 py-3 text-[10px] uppercase tracking-widest border transition-all",
+                              selectedSystem === sys 
+                                ? "bg-[#1A1A1A] text-white border-[#1A1A1A]" 
+                                : "bg-transparent text-[#1A1A1A] border-[#E5E1D8] hover:border-[#1A1A1A]"
+                            )}
+                          >
+                            {sys}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <Button onClick={handleCalc} className="w-full py-5 text-sm uppercase">Calculate Destiny</Button>
                   </div>
@@ -193,16 +233,43 @@ export default function App() {
                       animate={{ opacity: 1, y: 0 }}
                       className="w-full text-center py-12"
                     >
-                      <h2 className="text-[11px] font-sans uppercase tracking-[0.3em] mb-12 opacity-60">The Life Path Result</h2>
+                      <h2 className="text-[11px] font-sans uppercase tracking-[0.3em] mb-12 opacity-60">
+                        {result.fullName ? `Analysis for ${result.fullName}` : 'The Life Path Result'}
+                      </h2>
 
-                      <div className="relative inline-block mb-8">
-                        <span className="text-[200px] leading-none font-bold tracking-tighter text-[#1A1A1A]">
-                          {result.total}
-                        </span>
-                        <span className="absolute -top-4 -right-12 text-[10px] font-sans tracking-[0.5em] uppercase opacity-40 rotate-90">Number</span>
+                      <div className="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 mb-12">
+                        {/* Life Path */}
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] uppercase tracking-[0.5em] opacity-40 mb-2">Life Path</span>
+                          <div className="relative inline-block mb-4">
+                            <span className="text-[120px] leading-none font-bold tracking-tighter text-[#1A1A1A]">
+                              {result.total}
+                            </span>
+                            <span className="absolute -top-2 -right-8 text-[8px] font-sans tracking-[0.5em] uppercase opacity-40 rotate-90">Root</span>
+                          </div>
+                          <p className="text-xl italic text-[#1A1A1A] font-light">
+                            {result.master ? `Master ${result.total}` : `Vibration ${result.total}`}
+                          </p>
+                        </div>
+
+                        {/* Name Number (Expression) */}
+                        {result.nameNumber !== null && (
+                          <div className="flex flex-col items-center">
+                            <span className="text-[10px] uppercase tracking-[0.5em] opacity-40 mb-2">Expression ({result.system})</span>
+                            <div className="relative inline-block mb-4">
+                              <span className="text-[120px] leading-none font-bold tracking-tighter text-[#1A1A1A]">
+                                {result.nameNumber}
+                              </span>
+                              <span className="absolute -top-2 -right-8 text-[8px] font-sans tracking-[0.5em] uppercase opacity-40 rotate-90">Name</span>
+                            </div>
+                            <p className="text-xl italic text-[#1A1A1A] font-light">
+                              Vibration {result.nameNumber}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      <p className="text-3xl italic text-[#1A1A1A] mb-12 font-light">
+                      <p className="max-w-2xl mx-auto text-2xl italic text-[#1A1A1A] mb-12 font-light px-8">
                         {result.master ? `Master ${result.total}: The Illuminated` : PATH_DESCRIPTIONS[result.total] || "A unique and powerful path awaits."}
                       </p>
 
